@@ -281,7 +281,7 @@ export default function LearnPage() {
               No history yet.
             </div>
           ) : (
-            pastSessions.map((session) => (
+            pastSessions.map((session, index) => (
               <button
                 key={session.id}
                 onClick={() => loadPastSession(session)}
@@ -308,7 +308,9 @@ export default function LearnPage() {
               >
                 <MessageSquare size={14} style={{ flexShrink: 0 }} />
                 <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
-                  {session.conceptFocus || 'General Topic'}
+                  {session.startedAt 
+                    ? new Date(session.startedAt._seconds ? session.startedAt._seconds * 1000 : session.startedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) 
+                    : `Chat ${pastSessions.length - index}`}
                 </div>
               </button>
             ))
