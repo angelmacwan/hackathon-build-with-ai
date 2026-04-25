@@ -1,35 +1,35 @@
-import { VertexAI } from '@google-cloud/vertexai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
     const { message } = await request.json();
 
-    const project = process.env.GOOGLE_CLOUD_PROJECT || '';
-    const location = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!project) {
+    if (!apiKey) {
       return NextResponse.json(
-        { error: 'GOOGLE_CLOUD_PROJECT environment variable is not set' },
+        { error: 'GEMINI_API_KEY environment variable is not set' },
         { status: 500 }
       );
     }
 
-    const vertexAI = new VertexAI({ project: project, location: location });
-    const generativeModel = vertexAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3-flash-preview',
     });
 
-    const result = await generativeModel.generateContent(message);
+    const result = await model.generateContent(message);
     const response = result.response;
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI';
+    const text = response.text();
 
     return NextResponse.json({ text });
   } catch (error: any) {
-    console.error('Error calling Vertex AI:', error);
+    console.error('Error calling Gemini API:', error);
     return NextResponse.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500 }
     );
   }
 }
+
