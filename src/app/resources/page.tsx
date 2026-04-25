@@ -53,92 +53,161 @@ export default function ResourcesPage() {
 
   if (loading || fetching) {
     return (
-      <div className="min-h-dvh flex flex-col" style={{ background: 'var(--bg-base)' }}>
+      <div className="app-container">
         <NavBar />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="animate-spin" size={32} style={{ color: 'var(--np-purple)' }} />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 className="animate-spin" size={28} style={{ color: 'var(--secondary)' }} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ background: 'var(--bg-base)' }}>
+    <div className="app-container">
       <NavBar />
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-6 pb-24 md:pb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
-              <Library style={{ color: 'var(--np-purple)' }} aria-hidden="true" />
-              Resource Library
-            </h1>
-            <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Resources you&apos;ve saved from learning sessions
-            </p>
-          </div>
-          <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {resources.length} saved
-          </div>
-        </div>
+      <main className="main-content">
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-        {/* Filter pills */}
-        <div className="flex gap-2 flex-wrap" role="tablist" aria-label="Filter resources by type">
-          {RESOURCE_TYPES.map((t) => (
-            <button
-              key={t}
-              role="tab"
-              aria-selected={filter === t}
-              onClick={() => setFilter(t)}
-              className="text-xs px-4 py-1.5 rounded-full border transition-all capitalize font-medium"
-              style={
-                filter === t
-                  ? { background: '#1A1A1A', color: 'white', borderColor: '#1A1A1A' }
-                  : { borderColor: 'var(--border-default)', color: 'var(--text-secondary)', background: 'white' }
-              }
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {/* Empty state */}
-        {filtered.length === 0 && (
-          <div
-            className="np-card p-16 text-center space-y-4"
-            style={{ background: '#CCFBF1', borderColor: '#5EEAD4' }}
-          >
-            <div className="text-5xl" aria-hidden="true">📚</div>
-            <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-              No saved resources yet
-            </h2>
-            <p className="text-sm max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-              When you&apos;re in a learning session, click the bookmark icon on any resource card to save it here.
-            </p>
-          </div>
-        )}
-
-        {/* Resource grid */}
-        {filtered.length > 0 && (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            aria-label="Saved resources"
-          >
-            {filtered.map((r, i) => (
-              <div key={i} className="relative">
-                {r.completed && (
-                  <div
-                    className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ background: 'var(--np-teal)', border: '2px solid white' }}
-                    aria-label="Completed"
-                  >
-                    <CheckCircle2 size={14} className="text-white" aria-hidden="true" />
-                  </div>
-                )}
-                <ResourceCard resource={r} saved={true} />
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: 'var(--gradient-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  aria-hidden="true"
+                >
+                  <Library size={17} style={{ color: '#ffffff' }} />
+                </div>
+                <h1
+                  style={{
+                    fontFamily: 'Manrope, sans-serif',
+                    fontSize: 'clamp(1.4rem, 2.5vw, 1.75rem)',
+                    fontWeight: 800,
+                    letterSpacing: '-0.05em',
+                    color: 'var(--primary)',
+                  }}
+                >
+                  Resource Library
+                </h1>
               </div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--on-surface-variant)' }}>
+                Resources you&apos;ve saved from learning sessions
+              </p>
+            </div>
+            <div
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                padding: '0.4rem 0.85rem',
+                borderRadius: 99,
+                background: 'var(--surface-container-high)',
+                color: 'var(--secondary)',
+                alignSelf: 'flex-start',
+              }}
+            >
+              {resources.length} saved
+            </div>
+          </div>
+
+          {/* Filter pills */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.5rem' }} role="tablist" aria-label="Filter resources by type">
+            {RESOURCE_TYPES.map((t) => (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={filter === t}
+                onClick={() => setFilter(t)}
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  padding: '0.35rem 0.9rem',
+                  borderRadius: 99,
+                  border: `1px solid ${filter === t ? 'var(--primary)' : 'var(--outline-variant)'}`,
+                  background: filter === t ? 'var(--primary)' : 'var(--surface-container-lowest)',
+                  color: filter === t ? '#ffffff' : 'var(--on-surface-variant)',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'all 0.15s',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {t}
+              </button>
             ))}
           </div>
-        )}
+
+          {/* Empty state */}
+          {filtered.length === 0 && (
+            <div
+              className="np-card"
+              style={{
+                padding: '3.5rem 2rem',
+                textAlign: 'center',
+                background: 'var(--pastel-mint)',
+                borderColor: 'var(--pastel-mint-border)',
+              }}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }} aria-hidden="true">📚</div>
+              <h2
+                style={{
+                  fontFamily: 'Manrope, sans-serif',
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  color: 'var(--on-surface)',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                No saved resources yet
+              </h2>
+              <p style={{ fontSize: '0.875rem', color: 'var(--on-surface-variant)', maxWidth: '40ch', margin: '0 auto', lineHeight: 1.65 }}>
+                Bookmark any resource card during a learning session to save it here.
+              </p>
+            </div>
+          )}
+
+          {/* Resource grid */}
+          {filtered.length > 0 && (
+            <div
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px,1fr))', gap: '1rem' }}
+              aria-label="Saved resources"
+            >
+              {filtered.map((r, i) => (
+                <div key={i} style={{ position: 'relative' }}>
+                  {r.completed && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        zIndex: 1,
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        background: '#2d6a4f',
+                        border: '2px solid white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      aria-label="Completed"
+                    >
+                      <CheckCircle2 size={13} style={{ color: 'white' }} aria-hidden="true" />
+                    </div>
+                  )}
+                  <ResourceCard resource={r} saved={true} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

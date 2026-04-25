@@ -157,199 +157,262 @@ export default function LearnPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-        <Loader2 className="animate-spin" size={32} style={{ color: 'var(--np-purple)' }} />
+      <div className="app-container">
+        <NavBar />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 className="animate-spin" size={28} style={{ color: 'var(--secondary)' }} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ background: 'var(--bg-base)' }}>
+    <div className="app-container">
       <NavBar />
 
-      {/* Badge Toast */}
+      {/* Toasts */}
       {badgeToast && (
         <div
-          className="fixed top-20 right-4 z-50 np-card p-4 flex items-center gap-3 animate-badge-pop max-w-xs shadow-lg"
-          style={{ background: '#FEF3C7', borderColor: '#FCD34D' }}
+          className="np-card animate-badge-pop"
+          style={{
+            position: 'fixed',
+            top: '1.5rem',
+            right: '1.5rem',
+            zIndex: 50,
+            padding: '1rem 1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: 'var(--pastel-peach)',
+            borderColor: 'var(--pastel-peach-border)',
+            maxWidth: 300,
+            boxShadow: 'var(--shadow-elevated)',
+          }}
           role="alert"
           aria-live="polite"
         >
-          <span className="text-3xl" aria-hidden="true">{badgeToast.badge.emoji}</span>
+          <span style={{ fontSize: '2rem' }} aria-hidden="true">{badgeToast.badge.emoji}</span>
           <div>
-            <div className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-              Badge Unlocked! <Trophy size={12} className="inline" />
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--on-surface)', marginBottom: '0.15rem' }}>
+              Badge Unlocked! <Trophy size={11} className="inline" />
             </div>
-            <div className="text-sm font-medium" style={{ color: 'var(--np-purple)' }}>
-              {badgeToast.badge.name}
-            </div>
-            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              +{badgeToast.xp} XP
-            </div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)' }}>{badgeToast.badge.name}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}>+{badgeToast.xp} XP</div>
           </div>
         </div>
       )}
 
-      {/* XP Toast */}
       {xpGained && (
         <div
-          className="fixed top-20 left-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full animate-fade-up shadow-md"
-          style={{ background: '#EDE9FE', border: '1px solid #C4B5FD' }}
+          className="animate-fade-up"
+          style={{
+            position: 'fixed',
+            top: '1.5rem',
+            right: badgeToast ? '340px' : '1.5rem',
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.4rem 0.9rem',
+            borderRadius: 99,
+            background: 'var(--pastel-lavender)',
+            border: '1px solid var(--pastel-lavender-border)',
+            boxShadow: 'var(--shadow-sm)',
+          }}
           aria-live="polite"
         >
-          <Zap size={14} style={{ color: 'var(--np-purple)' }} aria-hidden="true" />
-          <span className="font-bold text-sm" style={{ color: 'var(--np-purple)' }}>+{xpGained} XP</span>
+          <Zap size={13} style={{ color: 'var(--primary)' }} aria-hidden="true" />
+          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary)' }}>+{xpGained} XP</span>
         </div>
       )}
 
-      {/* Chat Area */}
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 pb-36 md:pb-28">
-        {/* Welcome state */}
-        {messages.length === 0 && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 py-20 animate-fade-up">
-            <div className="text-5xl" aria-hidden="true">🧠</div>
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                Ready to learn?
-              </h1>
-              <p className="mt-2 max-w-md" style={{ color: 'var(--text-secondary)' }}>
-                Ask anything — a concept, a question, or what you want to learn today.
-                NeuralPath will adapt to you.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
-              {[
-                'Explain recursion to me',
-                'What is gradient descent?',
-                'How does HTTP work?',
-                'Teach me about photosynthesis',
-              ].map((prompt, i) => (
-                <button
+      {/* Main chat area – flex column so input stays at bottom without fixed positioning */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+        {/* Scrollable messages */}
+        <main
+          style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2rem 1rem' }}
+          role="log"
+          aria-label="Conversation"
+          aria-live="polite"
+        >
+          <div style={{ maxWidth: 760, margin: '0 auto' }}>
+            {/* Welcome state */}
+            {messages.length === 0 && (
+              <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '4rem 1rem', gap: '1.5rem' }}>
+                <div style={{ fontSize: '3.5rem' }} aria-hidden="true">🧠</div>
+                <div>
+                  <h1 style={{ fontFamily: 'Manrope, sans-serif', fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--primary)', marginBottom: '0.5rem' }}>
+                    Ready to learn?
+                  </h1>
+                  <p style={{ fontSize: '0.95rem', color: 'var(--on-surface-variant)', maxWidth: 420, lineHeight: 1.65 }}>
+                    Ask anything — NeuralPath adapts every explanation to your pace and style.
+                  </p>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: '0.65rem', width: '100%', maxWidth: 480 }}>
+                  {[
+                    'Explain recursion to me',
+                    'What is gradient descent?',
+                    'How does HTTP work?',
+                    'Teach me about photosynthesis',
+                  ].map((prompt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setInput(prompt); textareaRef.current?.focus(); }}
+                      style={{
+                        textAlign: 'left',
+                        padding: '0.8rem 1rem',
+                        borderRadius: 10,
+                        border: '1px solid var(--outline-variant)',
+                        color: 'var(--on-surface-variant)',
+                        background: 'var(--surface-container-lowest)',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        transition: 'border-color 0.15s, color 0.15s',
+                        lineHeight: 1.45,
+                        fontFamily: 'Inter, sans-serif',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.borderColor = 'var(--outline-variant)';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--on-surface-variant)';
+                      }}
+                      aria-label={`Use starter prompt: ${prompt}`}
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Messages */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingTop: messages.length > 0 ? '0.5rem' : 0 }}>
+              {messages.map((msg, i) => (
+                <div
                   key={i}
-                  onClick={() => { setInput(prompt); textareaRef.current?.focus(); }}
-                  className="text-left p-3 rounded-xl border transition-all text-sm"
-                  style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)', background: 'var(--bg-card)' }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--np-purple)';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--np-purple)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-default)';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                  }}
-                  aria-label={`Use starter prompt: ${prompt}`}
+                  className="animate-fade-up"
+                  style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}
                 >
-                  {prompt}
-                </button>
+                  {msg.role === 'user' ? (
+                    <div
+                      style={{
+                        maxWidth: '80%',
+                        padding: '0.75rem 1.1rem',
+                        borderRadius: '14px 14px 4px 14px',
+                        background: 'var(--gradient-primary)',
+                        color: '#ffffff',
+                        fontSize: '0.9rem',
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {msg.content}
+                    </div>
+                  ) : (
+                    <div style={{ maxWidth: '90%', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {msg.pedagogyMode && (
+                        <span
+                          className={`mode-badge mode-${msg.pedagogyMode}`}
+                          aria-label={`Teaching mode: ${msg.pedagogyMode}`}
+                        >
+                          {msg.pedagogyMode}
+                        </span>
+                      )}
+
+                      {msg.isStreaming && msg.content ? (
+                        <StreamingMessage content={msg.content} isStreaming={true} />
+                      ) : msg.content ? (
+                        <StreamingMessage content={msg.content} isStreaming={false} />
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} aria-label="Thinking">
+                          <Loader2 size={15} className="animate-spin" style={{ color: 'var(--secondary)' }} aria-hidden="true" />
+                          <span style={{ fontSize: '0.875rem', color: 'var(--on-surface-variant)' }}>Thinking…</span>
+                        </div>
+                      )}
+
+                      {msg.resources && msg.resources.length > 0 && (
+                        <div aria-label="Curated resources">
+                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--outline)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span aria-hidden="true">🔍</span> Resources for this concept
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px,1fr))', gap: '0.5rem' }}>
+                            {msg.resources.map((r, ri) => (
+                              <ResourceCard key={ri} resource={r} onSave={saveResource} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
           </div>
-        )}
+        </main>
 
-        {/* Messages */}
-        <div className="space-y-6 pt-6" role="log" aria-label="Conversation" aria-live="polite">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-up`}
-            >
-              {msg.role === 'user' ? (
-                <div
-                  className="max-w-[80%] px-5 py-3 rounded-2xl rounded-tr-sm text-sm"
-                  style={{ background: '#EDE9FE', border: '1px solid #C4B5FD' }}
-                >
-                  <p style={{ color: 'var(--text-primary)' }}>{msg.content}</p>
-                </div>
-              ) : (
-                <div className="max-w-[90%] space-y-4 w-full">
-                  {msg.pedagogyMode && (
-                    <span
-                      className={`mode-badge mode-${msg.pedagogyMode}`}
-                      aria-label={`Teaching mode: ${msg.pedagogyMode}`}
-                    >
-                      {msg.pedagogyMode}
-                    </span>
-                  )}
-
-                  {msg.isStreaming && msg.content ? (
-                    <StreamingMessage content={msg.content} isStreaming={true} />
-                  ) : msg.content ? (
-                    <StreamingMessage content={msg.content} isStreaming={false} />
-                  ) : (
-                    <div className="flex items-center gap-2" aria-label="Thinking">
-                      <Loader2 size={16} className="animate-spin" style={{ color: 'var(--np-purple)' }} aria-hidden="true" />
-                      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Thinking…</span>
-                    </div>
-                  )}
-
-                  {msg.resources && msg.resources.length > 0 && (
-                    <div className="space-y-2" aria-label="Curated resources">
-                      <div className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-                        <span aria-hidden="true">🔍</span> Live resources for this concept
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {msg.resources.map((r, ri) => (
-                          <ResourceCard key={ri} resource={r} onSave={saveResource} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      </main>
-
-      {/* Input Area */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t"
-        style={{
-          background: 'rgba(255,255,255,0.97)',
-          backdropFilter: 'blur(20px)',
-          borderColor: 'var(--border-subtle)',
-        }}
-      >
-        <div className="max-w-4xl mx-auto px-4 py-3 space-y-2">
-          {error && (
-            <div
-              role="alert"
-              className="flex items-center gap-2 text-sm rounded-xl px-4 py-2"
-              style={{ color: '#dc2626', background: '#FEE2E2', border: '1px solid #FECACA' }}
-            >
-              <AlertCircle size={14} aria-hidden="true" />
-              {error}
-            </div>
-          )}
-
-          {showUploader && (
-            <div className="np-card p-4">
-              <PDFUploader
-                onUploadComplete={(url, name) => {
-                  setShowUploader(false);
-                  setInput(`I've uploaded a PDF: "${name}". Please help me learn from it.`);
+        {/* Input bar – sticks to bottom of flex container, no fixed positioning needed */}
+        <div
+          style={{
+            borderTop: '1px solid var(--outline-variant)',
+            background: 'var(--surface-container-lowest)',
+            padding: '0.85rem 2rem 1rem',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ maxWidth: 760, margin: '0 auto' }}>
+            {error && (
+              <div
+                role="alert"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.85rem',
+                  borderRadius: 8,
+                  padding: '0.6rem 0.85rem',
+                  color: 'var(--error)',
+                  background: 'var(--error-container)',
+                  border: '1px solid rgba(186,26,26,0.2)',
+                  marginBottom: '0.65rem',
                 }}
-              />
-            </div>
-          )}
+              >
+                <AlertCircle size={13} aria-hidden="true" />
+                {error}
+              </div>
+            )}
 
-          <div className="flex items-end gap-3">
-            <button
-              onClick={() => setShowUploader((v) => !v)}
-              className="p-3 rounded-xl border transition-all flex-shrink-0"
-              style={
-                showUploader
-                  ? { borderColor: '#C4B5FD', background: '#EDE9FE', color: 'var(--np-purple)' }
-                  : { borderColor: 'var(--border-default)', color: 'var(--text-muted)' }
-              }
-              aria-label="Upload PDF document"
-              aria-pressed={showUploader}
-            >
-              <Paperclip size={18} aria-hidden="true" />
-            </button>
+            {showUploader && (
+              <div className="np-card" style={{ marginBottom: '0.65rem', padding: '1rem' }}>
+                <PDFUploader
+                  onUploadComplete={(url, name) => {
+                    setShowUploader(false);
+                    setInput(`I've uploaded a PDF: "${name}". Please help me learn from it.`);
+                  }}
+                />
+              </div>
+            )}
 
-            <div className="flex-1 relative">
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.65rem' }}>
+              <button
+                onClick={() => setShowUploader((v) => !v)}
+                style={{
+                  padding: '0.65rem',
+                  borderRadius: 8,
+                  border: `1px solid ${showUploader ? 'var(--primary)' : 'var(--outline-variant)'}`,
+                  background: showUploader ? 'var(--pastel-lavender)' : 'var(--surface-container-lowest)',
+                  color: showUploader ? 'var(--primary)' : 'var(--outline)',
+                  flexShrink: 0,
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+                aria-label="Upload PDF document"
+                aria-pressed={showUploader}
+              >
+                <Paperclip size={17} aria-hidden="true" />
+              </button>
+
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -357,31 +420,32 @@ export default function LearnPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask a question, share what you're confused about…"
                 rows={1}
-                className="input-field resize-none pr-12 min-h-[48px]"
-                style={{ lineHeight: '1.5', paddingTop: '12px', paddingBottom: '12px' }}
+                className="input-field"
+                style={{ resize: 'none', minHeight: 46, lineHeight: 1.5, paddingTop: '0.7rem', paddingBottom: '0.7rem', flex: 1 }}
                 aria-label="Message input"
                 disabled={isSending}
               />
+
+              <button
+                id="send-message-btn"
+                onClick={sendMessage}
+                disabled={!input.trim() || isSending}
+                className="btn-primary"
+                style={{ padding: '0.7rem 1rem', flexShrink: 0 }}
+                aria-label="Send message"
+              >
+                {isSending ? (
+                  <Loader2 size={17} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Send size={17} aria-hidden="true" />
+                )}
+              </button>
             </div>
 
-            <button
-              id="send-message-btn"
-              onClick={sendMessage}
-              disabled={!input.trim() || isSending}
-              className="btn-primary px-4 py-3 flex-shrink-0"
-              aria-label="Send message"
-            >
-              {isSending ? (
-                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-              ) : (
-                <Send size={18} aria-hidden="true" />
-              )}
-            </button>
+            <p style={{ fontSize: '0.7rem', textAlign: 'center', color: 'var(--outline)', marginTop: '0.5rem' }}>
+              Enter to send · Shift+Enter for new line
+            </p>
           </div>
-
-          <p className="text-[10px] text-center" style={{ color: 'var(--text-muted)' }}>
-            Enter to send · Shift+Enter for new line
-          </p>
         </div>
       </div>
     </div>

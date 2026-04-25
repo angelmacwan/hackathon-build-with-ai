@@ -20,7 +20,6 @@ export default function LoginPage() {
     setError(null);
     try {
       await signInWithGoogle();
-      // AuthContext handles cookie and its onAuthStateChanged will trigger redirect via the useEffect
       setIsSigningIn(false);
     } catch (err: any) {
       if (err.code !== 'auth/popup-closed-by-user') {
@@ -32,10 +31,24 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
+      <div
+        style={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--surface)',
+        }}
+      >
         <div
-          className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
-          style={{ borderColor: 'var(--pastel-lavender-border)', borderTopColor: 'transparent' }}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            border: '2.5px solid var(--outline-variant)',
+            borderTopColor: 'var(--primary)',
+            animation: 'spin 0.8s linear infinite',
+          }}
         />
       </div>
     );
@@ -43,34 +56,64 @@ export default function LoginPage() {
 
   return (
     <main
-      className="min-h-dvh flex items-center justify-center px-6"
-      style={{ background: 'var(--bg-base)' }}
+      style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem 1.5rem',
+        background:
+          'radial-gradient(circle at top left, rgba(255,220,197,0.55), transparent 30%), linear-gradient(180deg, #f7f4ef 0%, #eef1f0 100%)',
+      }}
     >
-      <div className="w-full max-w-sm space-y-8 animate-fade-up">
-        {/* Logo */}
-        <div className="text-center space-y-4">
+      <div style={{ width: '100%', maxWidth: 400 }} className="animate-fade-up">
+        {/* Brand */}
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div
-            className="inline-flex p-4 rounded-2xl animate-pulse-glow"
-            style={{ background: '#EDE9FE', border: '2px solid #C4B5FD' }}
+            style={{
+              display: 'inline-flex',
+              padding: '1rem',
+              borderRadius: 18,
+              background: 'var(--gradient-primary)',
+              marginBottom: '1.25rem',
+              boxShadow: '0 14px 32px rgba(18,40,60,0.18)',
+            }}
+            className="animate-pulse-glow"
             aria-hidden="true"
           >
-            <Brain size={40} style={{ color: 'var(--np-purple)' }} />
+            <Brain size={36} style={{ color: '#ffffff' }} />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight gradient-text">NeuralPath</h1>
-            <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Adaptive Learning Intelligence
-            </p>
-          </div>
+          <h1
+            style={{
+              fontFamily: 'Manrope, sans-serif',
+              fontSize: '2rem',
+              fontWeight: 800,
+              letterSpacing: '-0.06em',
+              color: 'var(--primary)',
+              marginBottom: '0.35rem',
+            }}
+          >
+            NeuralPath
+          </h1>
+          <p style={{ fontSize: '0.9rem', color: 'var(--secondary)' }}>Adaptive Learning Intelligence</p>
         </div>
 
         {/* Card */}
-        <div className="np-card p-8 space-y-6">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <div className="np-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+            <h2
+              style={{
+                fontFamily: 'Manrope, sans-serif',
+                fontSize: '1.4rem',
+                fontWeight: 800,
+                letterSpacing: '-0.04em',
+                color: 'var(--on-surface)',
+                marginBottom: '0.4rem',
+              }}
+            >
               Welcome back
             </h2>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)', lineHeight: 1.6 }}>
               Sign in to continue your learning journey
             </p>
           </div>
@@ -78,11 +121,15 @@ export default function LoginPage() {
           {error && (
             <div
               role="alert"
-              className="text-sm rounded-xl px-4 py-3 text-center"
               style={{
-                color: '#dc2626',
-                background: '#FEE2E2',
-                border: '1px solid #FECACA',
+                fontSize: '0.875rem',
+                borderRadius: 10,
+                padding: '0.75rem 1rem',
+                textAlign: 'center',
+                color: 'var(--error)',
+                background: 'var(--error-container)',
+                border: '1px solid rgba(186,26,26,0.2)',
+                marginBottom: '1.25rem',
               }}
             >
               {error}
@@ -93,14 +140,21 @@ export default function LoginPage() {
             id="google-signin-btn"
             onClick={handleGoogleSignIn}
             disabled={isSigningIn}
-            className="btn-google w-full justify-center"
+            className="btn-google"
+            style={{ width: '100%', justifyContent: 'center' }}
             aria-label="Sign in with Google"
           >
             {isSigningIn ? (
               <>
                 <div
-                  className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-                  style={{ borderColor: '#9CA3AF', borderTopColor: 'transparent' }}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    border: '2px solid var(--outline-variant)',
+                    borderTopColor: 'var(--primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                  }}
                 />
                 Signing in…
               </>
@@ -117,21 +171,34 @@ export default function LoginPage() {
             )}
           </button>
 
-          <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-            By signing in, you agree to our Terms of Service and Privacy Policy.
+          <p style={{ fontSize: '0.75rem', textAlign: 'center', color: 'var(--outline)', marginTop: '1.25rem', lineHeight: 1.6 }}>
+            By signing in, you agree to our Terms of Service.
             <br />
             Your learning data is locked to your account only.
           </p>
         </div>
 
         {/* Feature hints */}
-        <div className="space-y-3 text-sm">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           {[
             { emoji: '🧠', text: 'AI that adapts to how you think' },
-            { emoji: '🔍', text: 'Live Google Search for every concept' },
+            { emoji: '🔍', text: 'Live search for every concept' },
             { emoji: '🏆', text: 'Badges and XP for staying consistent' },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 px-2" style={{ color: 'var(--text-secondary)' }}>
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+                padding: '0.65rem 0.85rem',
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.65)',
+                border: '1px solid rgba(18,40,60,0.07)',
+                fontSize: '0.875rem',
+                color: 'var(--on-surface-variant)',
+              }}
+            >
               <span aria-hidden="true">{item.emoji}</span>
               <span>{item.text}</span>
             </div>
