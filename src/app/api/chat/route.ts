@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     const vertexAI = new VertexAI({ project: project, location: location });
     const generativeModel = vertexAI.getGenerativeModel({
-      model: 'gemini-1.5-flash-002',
+      model: 'gemini-1.5-flash',
     });
 
     const result = await generativeModel.generateContent(message);
