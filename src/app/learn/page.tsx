@@ -7,7 +7,7 @@ import NavBar from '@/components/NavBar';
 import StreamingMessage from '@/components/StreamingMessage';
 import ResourceCard from '@/components/ResourceCard';
 import PDFUploader from '@/components/PDFUploader';
-import { Send, Loader2, Paperclip, AlertCircle, Zap, Trophy } from 'lucide-react';
+import { Send, Loader2, Paperclip, AlertCircle, Zap, Trophy, MessageSquare, Plus, ChevronRight, ChevronLeft, Calendar } from 'lucide-react';
 import type { SessionMessage, CuratedResource } from '@/lib/graph/state';
 import type { Badge } from '@/lib/gamification/badges';
 import { BADGES } from '@/lib/gamification/badges';
@@ -25,6 +25,13 @@ interface BadgeToast {
   xp: number;
 }
 
+interface PastSession {
+  id: string;
+  startedAt: any;
+  conceptFocus: string;
+  messages: SessionMessage[];
+}
+
 export default function LearnPage() {
   const { user, loading, getIdToken } = useAuth();
   const router = useRouter();
@@ -38,12 +45,37 @@ export default function LearnPage() {
   const [badgeToast, setBadgeToast] = useState<BadgeToast | null>(null);
   const [xpGained, setXpGained] = useState<number | null>(null);
 
+  const [pastSessions, setPastSessions] = useState<PastSession[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [fetchingSessions, setFetchingSessions] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchSessions = async () => {
+      setFetchingSessions(true);
+      try {
+        const headers = await getAuthHeaders(getIdToken);
+        if (!headers) return;
+        const res = await fetch('/api/sessions', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setPastSessions(data.sessions || []);
+        }
+      } catch (err) {
+        console.error('Failed to load past sessions', err);
+      } finally {
+        setFetchingSessions(false);
+      }
+    };
+    fetchSessions();
+  }, [user, getIdToken]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,6 +103,24 @@ export default function LearnPage() {
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ resource }),
     });
+  };
+
+  const startNewChat = () => {
+    setSessionId(undefined);
+    setMessages([]);
+    setError(null);
+  };
+
+  const loadPastSession = (session: PastSession) => {
+    setSessionId(session.id);
+    setMessages(
+      session.messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+        resources: m.resources,
+      }))
+    );
+    if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
 
   const sendMessage = async () => {
@@ -109,6 +159,16 @@ export default function LearnPage() {
 
       const data = await res.json();
       setSessionId(data.sessionId);
+
+      // If it's a new session, reload past sessions to show it in the list
+      if (!sessionId) {
+        const h = await getAuthHeaders(getIdToken);
+        if (h) {
+          fetch('/api/sessions', { headers: h })
+            .then((r) => r.json())
+            .then((d) => setPastSessions(d.sessions || []));
+        }
+      }
 
       setMessages((prev) => {
         const updated = [...prev];
@@ -170,64 +230,175 @@ export default function LearnPage() {
     <div className="app-container">
       <NavBar />
 
-      {/* Toasts */}
-      {badgeToast && (
-        <div
-          className="np-card animate-badge-pop"
-          style={{
-            position: 'fixed',
-            top: '1.5rem',
-            right: '1.5rem',
-            zIndex: 50,
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            background: 'var(--pastel-peach)',
-            borderColor: 'var(--pastel-peach-border)',
-            maxWidth: 300,
-            boxShadow: 'var(--shadow-elevated)',
-          }}
-          role="alert"
-          aria-live="polite"
-        >
-          <span style={{ fontSize: '2rem' }} aria-hidden="true">{badgeToast.badge.emoji}</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--on-surface)', marginBottom: '0.15rem' }}>
-              Badge Unlocked! <Trophy size={11} className="inline" />
-            </div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)' }}>{badgeToast.badge.name}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}>+{badgeToast.xp} XP</div>
+      {/* History Sidebar */}
+      <aside
+        style={{
+          width: isSidebarOpen ? 260 : 0,
+          background: 'var(--surface-container-low)',
+          borderRight: isSidebarOpen ? '1px solid var(--outline-variant)' : 'none',
+          transition: 'width 0.2s ease',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+        aria-hidden={!isSidebarOpen}
+      >
+        <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto' }}>
+          <button
+            onClick={startNewChat}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.65rem 0.85rem',
+              borderRadius: 8,
+              background: 'var(--surface-container-high)',
+              border: '1px solid var(--outline-variant)',
+              color: 'var(--on-surface)',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginBottom: '1rem',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--surface-container-highest)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--surface-container-high)')}
+          >
+            <Plus size={16} /> New Chat
+          </button>
+
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--outline)', marginBottom: '0.25rem', paddingLeft: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Previous Chats
           </div>
-        </div>
-      )}
 
-      {xpGained && (
-        <div
-          className="animate-fade-up"
+          {fetchingSessions ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+              <Loader2 size={16} className="animate-spin" style={{ color: 'var(--outline)' }} />
+            </div>
+          ) : pastSessions.length === 0 ? (
+            <div style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', padding: '0.5rem 0.25rem' }}>
+              No history yet.
+            </div>
+          ) : (
+            pastSessions.map((session) => (
+              <button
+                key={session.id}
+                onClick={() => loadPastSession(session)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: sessionId === session.id ? 'var(--pastel-lavender)' : 'transparent',
+                  color: sessionId === session.id ? 'var(--primary)' : 'var(--on-surface-variant)',
+                  fontSize: '0.85rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  if (sessionId !== session.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface-container-highest)';
+                }}
+                onMouseLeave={(e) => {
+                  if (sessionId !== session.id) (e.currentTarget as HTMLElement).style.background = 'transparent';
+                }}
+              >
+                <MessageSquare size={14} style={{ flexShrink: 0 }} />
+                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+                  {session.conceptFocus || 'General Topic'}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
+
+      {/* Main chat area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+        
+        {/* Toggle Sidebar Button */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           style={{
-            position: 'fixed',
-            top: '1.5rem',
-            right: badgeToast ? '340px' : '1.5rem',
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.4rem 0.9rem',
-            borderRadius: 99,
-            background: 'var(--pastel-lavender)',
-            border: '1px solid var(--pastel-lavender-border)',
+            position: 'absolute',
+            left: isSidebarOpen ? -9999 : '1rem',
+            top: '1rem',
+            zIndex: 10,
+            background: 'var(--surface-container-lowest)',
+            border: '1px solid var(--outline-variant)',
+            borderRadius: 8,
+            padding: '0.4rem',
+            color: 'var(--on-surface-variant)',
+            cursor: 'pointer',
             boxShadow: 'var(--shadow-sm)',
+            display: isSidebarOpen ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-          aria-live="polite"
+          aria-label="Open sidebar"
         >
-          <Zap size={13} style={{ color: 'var(--primary)' }} aria-hidden="true" />
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary)' }}>+{xpGained} XP</span>
-        </div>
-      )}
+          <ChevronRight size={18} />
+        </button>
 
-      {/* Main chat area – flex column so input stays at bottom without fixed positioning */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+        {/* Toasts */}
+        {badgeToast && (
+          <div
+            className="np-card animate-badge-pop"
+            style={{
+              position: 'fixed',
+              top: '1.5rem',
+              right: '1.5rem',
+              zIndex: 50,
+              padding: '1rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              background: 'var(--pastel-peach)',
+              borderColor: 'var(--pastel-peach-border)',
+              maxWidth: 300,
+              boxShadow: 'var(--shadow-elevated)',
+            }}
+            role="alert"
+            aria-live="polite"
+          >
+            <span style={{ fontSize: '2rem' }} aria-hidden="true">{badgeToast.badge.emoji}</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--on-surface)', marginBottom: '0.15rem' }}>
+                Badge Unlocked! <Trophy size={11} className="inline" />
+              </div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)' }}>{badgeToast.badge.name}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}>+{badgeToast.xp} XP</div>
+            </div>
+          </div>
+        )}
+
+        {xpGained && (
+          <div
+            className="animate-fade-up"
+            style={{
+              position: 'fixed',
+              top: '1.5rem',
+              right: badgeToast ? '340px' : '1.5rem',
+              zIndex: 50,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.4rem 0.9rem',
+              borderRadius: 99,
+              background: 'var(--pastel-lavender)',
+              border: '1px solid var(--pastel-lavender-border)',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+            aria-live="polite"
+          >
+            <Zap size={13} style={{ color: 'var(--primary)' }} aria-hidden="true" />
+            <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary)' }}>+{xpGained} XP</span>
+          </div>
+        )}
+
         {/* Scrollable messages */}
         <main
           style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2rem 1rem' }}
@@ -353,7 +524,7 @@ export default function LearnPage() {
           </div>
         </main>
 
-        {/* Input bar – sticks to bottom of flex container, no fixed positioning needed */}
+        {/* Input bar */}
         <div
           style={{
             borderTop: '1px solid var(--outline-variant)',
@@ -362,7 +533,28 @@ export default function LearnPage() {
             flexShrink: 0,
           }}
         >
-          <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <div style={{ maxWidth: 760, margin: '0 auto', position: 'relative' }}>
+            {/* Collapse sidebar button when open (mobile/desktop mixed behavior) */}
+            {isSidebarOpen && (
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                style={{
+                  position: 'absolute',
+                  left: '-3rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--outline)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                }}
+                aria-label="Close sidebar"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+
             {error && (
               <div
                 role="alert"

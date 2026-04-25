@@ -116,6 +116,29 @@ export async function createSession(uid: string, conceptFocus: string): Promise<
   return ref.id;
 }
 
+export interface SessionDataWithId extends SessionData {
+  id: string;
+}
+
+export async function getUserSessions(uid: string): Promise<SessionDataWithId[]> {
+  const snap = await adminDb
+    .collection('users')
+    .doc(uid)
+    .collection('sessions')
+    .orderBy('startedAt', 'desc')
+    .get();
+
+  return snap.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      startedAt: data.startedAt,
+      endedAt: data.endedAt,
+    } as SessionDataWithId;
+  });
+}
+
 export async function updateSessionMessages(
   uid: string,
   sessionId: string,
