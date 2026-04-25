@@ -44,6 +44,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [data, setData] = useState<ProfileData | null>(null);
   const [fetching, setFetching] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -64,6 +65,27 @@ export default function ProfilePage() {
     };
     load();
   }, [user, getIdToken]);
+
+  const handleReset = async () => {
+    if (!confirm('Are you sure you want to reset all your progress? This will delete your roadmap, XP, and badges.')) return;
+    
+    setIsResetting(true);
+    try {
+      const headers = await getAuthHeaders(getIdToken);
+      if (!headers) return;
+      const res = await fetch('/api/profile', { method: 'DELETE', headers });
+      if (res.ok) {
+        router.push('/onboarding');
+      } else {
+        alert('Failed to reset progress. Please try again.');
+      }
+    } catch (err) {
+      console.error('Reset error:', err);
+      alert('Failed to reset progress.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   if (loading || fetching) {
     return (
@@ -292,6 +314,26 @@ export default function ProfilePage() {
               </span>
             </h2>
             <BadgeDisplay earnedBadgeIds={userData?.badges ?? []} showAll={true} compact={false} />
+          </section>
+
+          {/* Reset Progress */}
+          <section style={{ marginTop: '1rem', textAlign: 'center', paddingBottom: '2rem' }}>
+            <button
+              onClick={handleReset}
+              disabled={isResetting}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--error)',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                opacity: isResetting ? 0.5 : 1,
+              }}
+            >
+              {isResetting ? 'Resetting...' : 'Reset Progress & Start New Goal'}
+            </button>
           </section>
 
         </div>

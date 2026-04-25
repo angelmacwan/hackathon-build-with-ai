@@ -1,10 +1,17 @@
 /**
  * GET /api/profile — Returns full learner profile
  * PATCH /api/profile — Updates learner profile fields
+ * DELETE /api/profile — Resets user progress and profile data
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthHeader } from '@/lib/firebase/auth';
-import { getLearnerProfile, updateLearnerProfile, getUserData, getKnowledgeGraph } from '@/lib/firebase/firestore';
+import { 
+  getLearnerProfile, 
+  updateLearnerProfile, 
+  getUserData, 
+  getKnowledgeGraph,
+  resetUserProgress 
+} from '@/lib/firebase/firestore';
 
 export const runtime = 'nodejs';
 
@@ -48,4 +55,21 @@ export async function PATCH(req: NextRequest) {
 
   await updateLearnerProfile(uid, sanitized);
   return NextResponse.json({ success: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  let uid: string;
+  try {
+    uid = await verifyAuthHeader(req.headers.get('Authorization'));
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    await resetUserProgress(uid);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Failed to reset progress:', err);
+    return NextResponse.json({ error: 'Failed to reset progress' }, { status: 500 });
+  }
 }

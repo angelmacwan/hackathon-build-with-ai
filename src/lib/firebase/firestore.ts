@@ -79,6 +79,30 @@ export async function updateKnowledgeGraph(uid: string, graph: KnowledgeGraph): 
     .set(graph, { merge: false });
 }
 
+/** Wipes all user progress and profile data to allow re-onboarding. */
+export async function resetUserProgress(uid: string): Promise<void> {
+  const userRef = adminDb.collection('users').doc(uid);
+  
+  // 1. Reset base user stats
+  await userRef.update({
+    xp: 0,
+    level: 1,
+    streakDays: 0,
+    totalConceptsMastered: 0,
+    badges: [],
+    lastActiveAt: FieldValue.serverTimestamp(),
+  });
+
+  // 2. Clear subcollections
+  const collections = ['profile', 'knowledgeGraph', 'sessions', 'savedResources'];
+  for (const collName of collections) {
+    const collRef = userRef.collection(collName);
+    const docs = await collRef.listDocuments();
+    // Batch deletion would be better but for a single user this is safe and quick
+    await Promise.all(docs.map(d => d.delete()));
+  }
+}
+
 export async function upsertConceptNode(uid: string, node: ConceptNode): Promise<void> {
   const graph = await getKnowledgeGraph(uid);
   const existingIdx = graph.nodes.findIndex((n) => n.concept === node.concept);

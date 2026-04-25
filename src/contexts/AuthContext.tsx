@@ -7,7 +7,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import {
   signInWithPopup,
-  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -30,7 +30,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for redirect result on mount
+    getRedirectResult(auth).catch((err) => {
+      console.error('Redirect result error:', err);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+
       // Establish server-side session when user signs in
       if (firebaseUser) {
         // Set lightweight session cookie for middleware
@@ -43,16 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idToken }),
           });
-        } catch {
-          // Non-critical: user data will be created on next API call
+        } catch (err) {
+          console.error('Session sync error:', err);
         }
       } else {
         // Clear session cookie on sign out
         document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       }
-
-      setUser(firebaseUser);
-      setLoading(false);
     });
 
     return unsubscribe;
@@ -63,15 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     provider.addScope('email');
     provider.addScope('profile');
     try {
+      console.log('Initiating Google Sign-In...');
       await signInWithPopup(auth, provider);
     } catch (err: any) {
-      console.error('Sign in with popup failed:', err);
-      // Fallback to redirect if popup is blocked or fails
-      if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
-        await signInWithRedirect(auth, provider);
-      } else {
-        throw err;
-      }
+      console.error('Sign in failed:', err);
+      throw err;
     }
   }, []);
 
